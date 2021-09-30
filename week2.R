@@ -22,4 +22,4 @@ str(test_list) #str displays structure of an object
 #adding entries to the list
 test_list[[1]][2] <- "ent2" #adding a sub-element to the list
 str(test_list)
-test_list[[2]] <- char_dat
+test_list[[2]] <- char_dat #adding an element to the list
