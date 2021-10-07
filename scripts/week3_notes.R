@@ -1,4 +1,5 @@
-# Goals
+# Before class videos
+# goals
 ## using the read.csv() function to read in data
 ## explore and subset dataframes
 ## packages and base R vs the tidyverse
@@ -58,3 +59,7 @@ class(surveys_t) #much more than just a dataframe now
 
 # subsetting a tibble is a little different
 surveys_t[,1] #tibble output
+
+# In class session
+# read in spreadsheet
+surveys <- read.csv("data/portal_data_joined.csv")
