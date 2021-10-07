@@ -63,3 +63,20 @@ surveys_t[,1] #tibble output
 # In class session
 # read in spreadsheet
 surveys <- read.csv("data/portal_data_joined.csv")
+
+# count unique values
+length(unique(surveys$species))
+
+# subsetting a dataframe
+surveys_200 <- surveys[200,] ## extract 200th row
+surveys_last <- surveys[nrow(surveys),] ## extract last row
+surveys_last
+surveys_last2 <- tail(surveys,1)
+class(surveys_last2) ## check if class is correct
+surveys_last2
+
+surveys_middle <- surveys[nrow(surveys)/2,] ## extract middle row
+surveys_middle
+
+surveys_head <- surveys[-(7:nrow(surveys)),] ## extract first 6 rows
+surveys_head
