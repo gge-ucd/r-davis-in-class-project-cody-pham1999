@@ -31,4 +31,4 @@ surveys_base
 
 # challenge: only keep rows with individuals greater than 150g
 surveys_base <- surveys_base %>% filter(weight > 150)
-
+surveys_base
