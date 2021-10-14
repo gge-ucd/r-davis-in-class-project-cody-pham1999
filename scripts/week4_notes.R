@@ -60,12 +60,19 @@ surveys %>% group_by(sex) %>%
   tally()
 
 #summarizing data challenge
-surveys %>% #get mean, min, and max of each species
+surveys_summ <- surveys %>% #get mean, min, and max of each species
   group_by(species_id)  %>%
   filter(!is.na(hindfoot_length)) %>% #only select non NA values
   summarize(mean_hindfoot=mean(hindfoot_length),  
             max_hindfoot=max(hindfoot_length),
             min_hindfoot=min(hindfoot_length))
+
+surveys %>% 
+  filter(!is.na(weight)) %>%
+  group_by(year) %>% 
+  filter((weight == max(weight))) %>% 
+  select(year, genus, species_id, weight) %>% 
+  arrange(year)
 
 surveys %>% 
   group_by(sex) %>% 
