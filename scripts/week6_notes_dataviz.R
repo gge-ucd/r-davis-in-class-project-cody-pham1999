@@ -31,6 +31,15 @@ base_plot + geom_point(color = 'blue') ## makes point fills blue
 ggplot(data = surveys, mapping = aes(x = weight, y = hindfoot_length)) +
   geom_point(mapping = aes(color = species_id))
 
+#challenge: scatterplot of weight and species_id
+## colors coded by plot_type
+ggplot(data = surveys, mapping = aes(x = species_id, y = weight)) +
+  geom_jitter(mapping = aes(color = plot_type)) ## not the greatest plot
+
+ggplot(data = surveys, mapping = aes(x = species_id, y = weight)) +
+  geom_point(aes(color = plot_type)) +
+  facet_wrap((~plot_type))
+
 #making a boxplot
 ggplot(data = surveys, mapping = aes(x = species_id, y = weight)) +
   geom_boxplot()
@@ -46,6 +55,21 @@ base_plot2 +
   geom_boxplot() +
   geom_jitter(alpha = 0.2, mapping = aes(color = species_id)) ## spread points out
                                                               ## color by spp id
+
+#challenges: boxplots
+## violin plots
+base_plot2 +
+  geom_jitter(alpha = 0.2, mapping = aes(color = species_id)) + ## spread points out
+                                                               ## color by spp id
+  geom_violin() +
+  scale_y_log10() ## representing y on long scale
+
+surveys %>% 
+  filter(species_id == 'NL'|species_id == 'PF') %>% 
+  ggplot(mapping = aes(x = species_id, y = hindfoot_length)) +
+    geom_jitter(alpha = 0.2, aes(color = plot_type)) + ## spread points out
+                                                      ## color by spp id
+    geom_boxplot()
 
 #creating time series
 yearly_cts <-  surveys %>% 
