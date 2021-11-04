@@ -97,3 +97,89 @@ ggplot(data = yearly_cts, mapping = aes(x = year, y = n, group = species_id)) +
 ## many other themes
 install.packages("ggthemes")
 ## theme_map() to remove axes for maps
+
+#WK 7: fine tuning and saving plots
+library(tidyverse)
+library(ggthemes)
+library(gridExtra) ## for arranging plots in R output
+data(mtcars) ## read in package and data
+
+g1 <- ggplot(data = mtcars, aes(mpg, hp)) +
+  geom_point() 
+g2 <- ggplot(data = mtcars, aes(mpg, hp)) +
+  geom_point() +
+  theme_tufte()
+grid.arrange(g1,g2,ncol=2) ## arrange plots
+
+#customizing plots
+ggplot(data = mtcars, aes(mpg, hp, color=as.factor(cyl))) +
+  geom_point() +
+  scale_color_colorblind() ## scaling discrete colors for colorblind accessibility
+
+## using scale color viridis to make color scales transfer from color to bw
+ggplot(data = mtcars, aes(mpg, hp, color=wt)) +
+  scale_color_viridis_c() + ## scaling continuous colors for bw and color transmission
+  geom_point() +
+  theme_bw()
+
+library(tigris) ## packages with shapefiles
+library(sf)
+
+#plotting maps
+ca.counties = tigris::counties(state = 'GA', class = 'sf', year = 2017)
+ggplot(data = ca.counties, aes(fill=ALAND)) +
+  scale_fill_viridis_c() +
+  geom_sf() +
+  theme_map()
+
+#nonvisual data viz
+library(BrailleR) ## converts visual plots to text description
+
+g3 <- ggplot(diamonds, aes(x = clarity, fill = cut)) + ## plot to put into text
+  geom_bar() +
+  theme(axis.text.x = element_text(angle=70, vjust=0.5)) +
+  scale_fill_viridis_d(option = "C") +
+  theme_classic()
+BrailleR::VI(g3)
+
+library(sonify) ## converts visual plots to sound
+
+plot(iris$Petal.Width)
+sonify::sonify(iris$Petal.Length) ## whistle that changes pitch based on trends
+
+#saving plots
+library(cowplot) ## package to help save plots
+
+#create plots to save
+d.plot <- ggplot(diamonds, aes(clarity, fill=cut)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle=45, vjust=0.5)) ## change angle and position of labels
+d.plot
+
+mpg.plot <- ggplot(mpg, aes(cty, hwy, color=factor(cyl))) +
+  geom_point(size=2.5)
+mpg.plot
+
+iris.plot <- ggplot(iris, aes(Sepal.Length, Petal.Length, color=Species)) +
+  geom_point(alpha=0.3)
+iris.plot
+
+#create a grid of plots in even boxes
+plot_grid(d.plot, iris.plot, mpg.plot, labels = c("A", "B", "C", nrow=1))
+
+#line up and resize plots using ggdraw + draw_plot
+ggdraw() + draw_plot(iris.plot, x=0, y=0, height=0.5) + ## iris take up whole bottom row
+  draw_plot(mpg.plot, x=0, y=0.5, height=0.5, width=0.5) + ## mpg top left
+  draw_plot(d.plot, x=0.5, y=0.5, width=0.5, height=0.5) ## diamonds top right
+
+#save plots
+final.plot <- ggdraw() + draw_plot(iris.plot, x=0, y=0, height=0.5) + ## iris take up whole bottom row
+  draw_plot(mpg.plot, x=0, y=0.5, height=0.5, width=0.5) + ## mpg top left
+  draw_plot(d.plot, x=0.5, y=0.5, width=0.5, height=0.5) ## diamonds top right
+
+dir.create("figures") ## create a folder
+ggsave("figures/finalplot.png", plot=final.plot, width = 6, height = 4, units = "in")
+
+#interactive plots
+library(plotly)
+plotly::ggplotly(iris.plot) ## automatically allows hovering for values, panning, filtering based on legend values
