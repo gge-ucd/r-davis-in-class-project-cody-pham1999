@@ -1,0 +1,157 @@
+---
+title: "finalproject_cp"
+author: "Cody Pham"
+date: "12/2/2021"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(cowplot)
+library(lubridate) ## read in packages
+
+theme_set(theme_classic()) ## set theme for all plots
+```
+
+
+```{r}
+#read in data
+setwd("C:/Users/codyp/Desktop/DavisSchoolStuff/R_DAVIS_2021/r-davis-in-class-project-cody-pham1999") ## set working directory
+flights.dat <- read_csv("data/nyc_13_flights_small.csv")
+planes.dat <- read_csv("data/nyc_13_planes.csv")
+weather.dat <- read_csv("data/nyc_13_weather.csv")
+
+str(flights.dat)
+str(planes.dat)
+str(weather.dat)
+```
+
+```{r}
+#Plot the departure delay of flights against the precipitation, and include a simple regression line as part of the plot. Hint: there is a geom_ that will plot a simple y ~ x regression line for you, but you might have to use an argument to make sure it’s a regular linear model. Use ggsave to save your ggplot objects into a new folder you create called “plots”.
+
+#departure delay~precipitation
+## using flights and weather data
+## join on time_hour cols, just keep everything in flights df
+flights.weather.dat <- inner_join(flights.dat, weather.dat, by="time_hour") %>%  ## get weather dat with flights dat
+  select(!month.x) %>% 
+  mutate(month=month.y) %>% 
+  select(!month.y) %>% 
+  select(!year.x) %>% 
+  mutate(year=year.y) %>% 
+  select(!year.y) %>% 
+  select(!day.x) %>% 
+  mutate(day=day.y) %>% 
+  select(!day.y) ## remove duplicate rows
+
+pcp.delay.fig <- flights.weather.dat %>% 
+  filter(!is.na(dep_delay)) %>% 
+  ggplot(aes(precip, dep_delay)) + ## select variables to graph
+    geom_smooth(method="lm") + ## linear trendline
+    geom_point(size=3, alpha=0.3) +
+    labs(x="Precipitation", y="Departure Delay (hrs)")
+
+#dir.create("plots") ## create plots folder
+ggsave("plots/pcp_delay_fig.png", plot=pcp.delay.fig, width = 6, height = 4, units = "in") ## save figure
+
+```
+
+```{r}
+#Create a figure that has date on the x axis and each day’s mean departure delay on the y axis. Plot only months September through December. Somehow distinguish between airline carriers (the method is up to you). Again, save your final product into the “plot” folder.
+
+#date on x, each day's mean departure delay on y (only Sep-Dec)
+## distinguish airline carriers
+flights.weather.dat <- flights.weather.dat %>% 
+  filter(!is.na(year) | !is.na(month) | !is.na(day) 
+         | !is.na(carrier) | !is.na(dep_delay)) %>% ## filter nas
+  filter(month %in% 9:12) %>% ## only sep-dec
+  mutate(date = ymd(paste(year, month, day))) ## create date col
+
+date.delay.fig <- flights.weather.dat %>% 
+  group_by(date, carrier) %>% 
+  summarize(avg_dep_delay=mean(dep_delay)) %>%
+  filter(!is.na(avg_dep_delay)) %>% 
+  ggplot(aes(date, avg_dep_delay)) + ## create plot
+    geom_point(size=1, alpha=0.3, aes(color=carrier)) +
+    theme(legend.position="none") +
+    facet_wrap(~carrier) +
+    labs(x="Date", y="Departure Delay (hrs)")
+
+ggsave("plots/date_delay_fig.png", plot=date.delay.fig, width = 6, height = 4, units = "in") ## save figure
+```
+
+```{r}
+#Create a dataframe with these columns: date (year, month and day), mean_temp, where each row represents the airport, based on airport code. Save this is a new csv into you data folder called mean_temp_by_origin.csv.
+mean_temp_by_origin <- flights.weather.dat %>% 
+  group_by(carrier, year, month, day) %>% 
+  summarize(mean_temp = mean(temp)) ## create df
+
+write_csv(mean_temp_by_origin,
+          "data/mean_temp_by_origin.csv") ## save df
+```
+
+```{r}
+#Make a function that can: (1) convert hours to minutes; and (2) convert minutes to hours (i.e., it’s going to require some sort of conditional setting in the function that determines which direction the conversion is going). Use this function to convert departure delay (currently in minutes) to hours and then generate a boxplot of departure delay times by carrier. Save this function into a script called “customFunctions.R” in your scripts/code folder.
+
+#function for hour/minute conversion
+hrMinConvert <- function(vec, convert.to) {
+  if(convert.to == "hours") {
+    vec.hours <- vec/60 ## convert to hours
+    
+    return(vec.hours) ## return converted vector
+  } else if(convert_to == "minutes") {
+    vec.minutes <- vec*60 ## convert to minutes
+    
+    return(vec.minutes) ## return converted vector
+   } else {
+     ## notify of invalid input
+     print("argument convert.to must be string `hours` or `minutes`")
+  }
+}
+
+flights.delay.dat <- flights.dat %>% 
+  filter(!is.na(dep_delay)) %>% 
+  filter(dep_delay > 0) ## only keep departure delays
+
+flights.delay.dat$dep_delay_min <- hrMinConvert(flights.delay.dat$dep_delay, "hours") ## create new col using function
+
+flights.delay.dat %>% 
+  ggplot(aes(carrier, dep_delay_min)) + 
+  geom_boxplot() +
+  labs(x="Carrier", y="Departure Delay (min)")
+```
+
+```{r}
+#Below is the plot we generated from the new data in Q4. (Base code: ggplot(df, aes(x = dep_delay_hrs, y = carrier, fill = carrier)) +   geom_boxplot()). The goal is to visualize delays by carrier. Do (at least) 5 things to improve this plot by changing, adding, or subtracting to this plot. The sky’s the limit here, remember we often reduce data to more succinctly communicate things.
+
+#base plot
+ggplot(flights.delay.dat, aes(x = dep_delay, y = carrier, fill = carrier)) +   geom_boxplot()
+
+#1) remove colors (remove redundancy with axis label)
+ggplot(flights.delay.dat, aes(x = dep_delay, y = carrier)) +
+  geom_boxplot()
+
+#2) flip axes (having delay on the y axis makes it easier to recognize differences)
+ggplot(flights.delay.dat, aes(x = carrier, y = dep_delay)) +
+  geom_boxplot()
+
+#3) rename axes
+ggplot(flights.delay.dat, aes(x = carrier, y = dep_delay)) +
+  geom_boxplot() +
+  labs(x="Carrier", y="Departure Delay (hr)")
+
+#4) add a theme
+ggplot(flights.delay.dat, aes(x = carrier, y = dep_delay)) +
+  geom_boxplot() +
+  labs(x="Carrier", y="Departure Delay (hr)") #+
+  #theme_classic() ## global settings has this as default theme
+
+#5) make font size bigger
+ggplot(flights.delay.dat, aes(x = carrier, y = dep_delay)) +
+  geom_boxplot() +
+  labs(x="Carrier", y="Departure Delay (hr)") +
+  theme(text = element_text(size=15)) #+
+  #theme_classic() ## global settings has this as default theme
+```
+
+
+

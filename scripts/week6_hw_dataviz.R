@@ -2,6 +2,19 @@
 ## Cody Pham
 ## 2021 Oct 21
 
+fail.dat <- readRDS('C:/Users/codyp/Desktop/nestwatch/Data/active/failure-cleaned.rds') ## failures
+suc.dat <- readRDS('C:/Users/codyp/Desktop/nestwatch/Data/active/success-cleaned.rds') ## successes
+#filter out non hosts
+bhco.hosts <- read.csv('C:/Users/codyp/Desktop/BHCOHosts.csv')
+suc.dat <- suc.dat %>% 
+  filter(species %in% bhco.hosts$CommonName)
+
+#read in libraries
+## for models
+library(lme4)
+library(tidyverse)
+
+
 #read in package
 library(tidyverse)
 
